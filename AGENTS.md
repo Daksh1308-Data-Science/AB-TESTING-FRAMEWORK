@@ -38,9 +38,13 @@ Build an **A/B testing framework for binary conversion metrics** with:
 
 ```
 AB Testing Framework/
+├── data/                        # real-world Udacity e-commerce A/B dataset (committed)
+│   ├── ab_data.csv              #   user_id, timestamp, group, landing_page, converted
+│   └── countries.csv            #   user_id, country (optional feature data)
 ├── abtest/                     # core library: pure, deterministic, testable
 │   ├── __init__.py
 │   ├── data_generator.py       # synthetic conversion data, seeded
+│   ├── real_data.py            # load/clean real ab_data.csv, SRM check, chronological split
 │   ├── frequentist.py          # two-proportion z-test, CI, lift
 │   ├── power.py                # sample size, power curves
 │   ├── multiple_testing.py     # Bonferroni + BH wrappers
@@ -48,7 +52,7 @@ AB Testing Framework/
 │   ├── sequential.py           # Bayesian early-stopping rules
 │   └── simulations.py          # peeking / power / multi-test / time-to-decision
 ├── dashboard/
-│   └── app.py                  # Streamlit app, exactly 4 tabs
+│   └── app.py                  # Streamlit app, exactly 4 tabs, synthetic OR real data
 ├── tests/                      # pytest, known-value fixtures
 ├── docs/
 │   ├── best_practices.md
@@ -118,16 +122,33 @@ AB Testing Framework/
 - All four return `dict`s with `{metric, value}`-style results that dashboards
   and README can cite. No hardcoded headline numbers.
 
+### `abtest/real_data.py`
+- `load_ab_data(path=None) -> DataFrame` — raw `data/ab_data.csv` with parsed
+  timestamps; `FileNotFoundError` / `ValueError` on bad input.
+- `load_countries(path=None) -> DataFrame` — `user_id`, `country`.
+- `clean_ab_data(df) -> DataFrame` — drops users who saw both pages (multi-row
+  users); one row per user; sorted by `timestamp` then `user_id` (arrival
+  order for sequential replay).
+- `srm_check(df, alpha=0.05) -> dict` — Sample Ratio Mismatch check on the
+  control share; must contain CI, `passes`, `verdict`.
+- `chronological_split(df, checkpoints=100) -> dict` — cumulative
+  `successes`/`totals` arrays of shape `(2, checkpoints)` (row 0 = control,
+  row 1 = treatment) for `sequential.sequential_result`.
+
 ### `dashboard/app.py`
-- Streamlit sidebar controls: daily traffic, base rate, MDE, alpha, power,
-  variant count (multi-arm), successes/totals input or "generate from
-  generator" toggle.
+- Streamlit sidebar controls: data source (synthetic or real `ab_data.csv`),
+  daily traffic, base rate, MDE, alpha, power, variant count (multi-arm),
+  successes/totals input or "generate from generator" toggle.
 - **Exactly 4 tabs, fixed order and names:**
   1. `Planner` — sample size, power curve, expected duration
   2. `Frequentist` — z-tests, CIs, forest plot, Bonferroni + BH corrections
   3. `Bayesian` — posterior plots, P(best), expected loss, sequential chart
   4. `Simulations` — the four sims from `simulations.py`, interactive params
 - Heavy compute behind `st.cache_data`.
+- With the **real** data source: planner uses the *observed* control rate and
+  observed lift; a collapsible data-quality block shows raw/clean row counts
+  and the SRM verdict; the sequential monitor uses `pbest_method="mc"` when
+  samples per arm exceed 20k (exact sum is too slow at that scale).
 
 ## 5. Build order & Definition of Done per milestone
 

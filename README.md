@@ -52,6 +52,7 @@ streamlit run dashboard/app.py    # launch the dashboard
 ```
 abtest/
 ├── data_generator.py    seeded synthetic conversion data with known truth
+├── real_data.py         real Udacity e-commerce A/B data: load, clean, SRM check
 ├── frequentist.py       two-proportion z-test, lift CIs
 ├── power.py             sample size, power curves, duration
 ├── multiple_testing.py  Bonferroni + Benjamini-Hochberg
@@ -60,9 +61,34 @@ abtest/
 └── simulations.py       peeking / power / multi-test / time-to-decision sims
 ```
 
-Every claim this project makes is **measured by `abtest/simulations.py`**, not
-asserted. Measured at the defaults below (`seed=42`; re-run the sims to
-reproduce):
+The dashboard runs on either dataset (sidebar toggle): seeded synthetic data,
+or the **real Udacity e-commerce A/B test** committed in `data/ab_data.csv`
+(~294k logged pageviews, ~290k unique users, Jan 2017). When it's the real
+data you get an extra *data quality* block (sample-ratio-mismatch check) and
+the Bayesian sequential monitor replays the experiment in actual arrival order.
+
+## Real-world validation
+
+Results of running the framework on the committed real dataset
+(`data/ab_data.csv`, a real test of a new landing page vs. the old one):
+
+| Metric | Value |
+|---|---|
+| Raw rows → clean rows | 294,478 → 286,690 (3,894 users saw both pages, dropped) |
+| SRM / randomization check | control share 49.98% (95% CI [49.8%, 50.2%]) — passes |
+| Control vs. treatment conversion | 12.02% vs. 11.87% |
+| z-test (two-sided) | z = −1.19, **p = 0.23 — null result** |
+| 95% CI on lift | [−0.38 pp, +0.09 pp] — straddles zero |
+| Bayesian | P(control best) ≈ 1.0 → expected loss of shipping treatment ≈ 0.14 pp |
+| Decision the framework makes | **Keep control** (or run longer) — do not ship |
+
+This is the honest case experiments usually hit: the treatment is not
+significant, and the framework says *don't ship* instead of manufacturing a
+winner.
+
+Every headline property this project claims is **measured by
+`abtest/simulations.py`** (seeded, reproducible), not asserted. Measured with
+the defaults (`seed=42`; bump the sidebar sim params to re-run):
 
 | Experiments with smarts | Naive approach | Measured here |
 |---|---|---|
