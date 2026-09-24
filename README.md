@@ -140,6 +140,7 @@ The four sims, all seeded and in `abtest/simulations.py`:
 
 - `AGENTS.md` — contributor/agent ground rules (read before editing)
 - `docs/best_practices.md` — when and how to run an A/B test properly
+- `docs/deployment.md` — deploy the dashboard to Streamlit Community Cloud
 - `docs/executive_template.md` — executive summary report template
 
 ## Dependencies
