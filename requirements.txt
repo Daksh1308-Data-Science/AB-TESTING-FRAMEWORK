@@ -1,0 +1,11 @@
+numpy>=1.24
+scipy>=1.10
+pandas>=1.5
+statsmodels>=0.14
+matplotlib>=3.6
+plotly>=5.14
+streamlit>=1.26
+pytest>=7.0
+# Optional: PyMC MCMC engine for bayesian.py ("auto" falls back to exact
+# closed-form Beta sampling when this is not installed).
+# pymc>=5.0
