@@ -36,6 +36,35 @@ pytest                            # run the test suite
 streamlit run dashboard/app.py    # launch the dashboard
 ```
 
+## Dashboard
+
+Launch it with `streamlit run dashboard/app.py`. The sidebar drives the whole
+app (data source, traffic, base rate, MDE, α, power, variant count); the four
+tabs below are all computed live from `abtest/` — no placeholder numbers.
+
+**Planner** — required sample size, power curve, expected duration
+
+<img src="docs/images/dashboard_planner.png" width="820" alt="Planner tab: sample size, power curve, expected duration">
+
+**Frequentist** — z-tests, multiple-testing corrections, lift forest plot
+
+<img src="docs/images/dashboard_frequentist.png" width="820" alt="Frequentist tab: z-tests, corrections, forest plot">
+
+**Bayesian** — posterior densities, P(best), expected loss, sequential monitor
+
+<img src="docs/images/dashboard_bayesian.png" width="820" alt="Bayesian tab: posteriors, P(best), expected loss, sequential chart">
+
+**Simulations** — the four measured simulations with interactive parameters
+
+<img src="docs/images/dashboard_simulations.png" width="820" alt="Simulations tab: measured peeking, power, multiple testing, time to decision">
+
+With **data source = Real: Udacity `ab_data.csv`** the Frequentist tab also
+shows the data-quality block — raw vs. clean row counts and the
+sample-ratio-mismatch verdict — on the real experiment (a null result: the
+framework says *keep control*, do not ship):
+
+<img src="docs/images/dashboard_real_frequentist.png" width="820" alt="Frequentist tab with real Udacity data and data-quality block">
+
 ## Framework workflow
 
 1. **Plan** — pick a base rate and minimum detectable effect (MDE); get the
